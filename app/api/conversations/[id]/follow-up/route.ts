@@ -12,13 +12,13 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { follow_up_flag, follow_up_due_date } = body;
+  const { follow_up_flag, follow_up_action } = body;
 
   try {
     const updated = await updateFollowUp(
       id,
       Boolean(follow_up_flag),
-      follow_up_due_date ?? null
+      follow_up_action ?? ""
     );
     return NextResponse.json({ conversation: updated });
   } catch (err) {

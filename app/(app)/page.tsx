@@ -6,24 +6,40 @@ import { FilterBar } from "@/components/inbox/FilterBar";
 import { ConversationFeed } from "@/components/inbox/ConversationFeed";
 import { Spinner } from "@/components/ui/Spinner";
 import { listConversations } from "@/lib/notion/conversations";
+import { listCustomers } from "@/lib/notion/customers";
 
 interface InboxPageProps {
   searchParams: Promise<{
-    channel?: string;
-    needsReply?: string;
-    status?: string;
+    conversationStatus?: string;
+    followUpOnly?: string;
   }>;
 }
 
 async function InboxContent({ searchParams }: InboxPageProps) {
   const params = await searchParams;
-  const conversations = await listConversations({
-    channel: params.channel,
-    needsReply: params.needsReply === "true" ? true : undefined,
-    status: params.status,
+
+  const [conversations, customers] = await Promise.all([
+    listConversations({
+      conversationStatus: params.conversationStatus,
+      followUpOnly: params.followUpOnly === "true" ? true : undefined,
+    }),
+    listCustomers(),
+  ]);
+
+  // Enrich conversations with customer info for display
+  const customerMap = new Map(customers.map((c) => [c.id, c]));
+  const enriched = conversations.map((conv) => {
+    const c = customerMap.get(conv.customerId);
+    return {
+      ...conv,
+      customerName: c?.name ?? "",
+      customerCompany: c?.company ?? "",
+      customerDealStage: c?.dealStage ?? "",
+      customerOwner: c?.owner ?? "",
+    };
   });
 
-  return <ConversationFeed conversations={conversations} />;
+  return <ConversationFeed conversations={enriched} />;
 }
 
 export default function InboxPage({ searchParams }: InboxPageProps) {

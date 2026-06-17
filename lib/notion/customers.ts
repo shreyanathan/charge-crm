@@ -1,19 +1,21 @@
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints/common";
-import type { Customer } from "@/types/customer";
+import type { Customer, DealStage } from "@/types/customer";
 import { getNotionClient } from "./client";
 
 const DB_ID = process.env.NOTION_CUSTOMERS_DB_ID!;
 
+const VALID_STAGES: DealStage[] = ["NDA", "LOI", "Contract", "Closed/Won", "Stale"];
+
 function pageToCustomer(page: PageObjectResponse): Customer {
   const props = page.properties as Record<string, any>;
+  const rawStage = props["Deal Stage"]?.select?.name ?? "NDA";
 
   return {
     id: page.id,
     name: props.Name?.title?.[0]?.plain_text ?? "",
     company: props.Company?.rich_text?.[0]?.plain_text ?? "",
     email: props.Email?.email ?? "",
-    slackUserId: props["Slack User ID"]?.rich_text?.[0]?.plain_text ?? "",
-    status: props.Status?.select?.name ?? "prospect",
+    dealStage: (VALID_STAGES.includes(rawStage) ? rawStage : "NDA") as DealStage,
     owner: props.Owner?.people?.[0]?.name ?? "",
     notes: props.Notes?.rich_text?.[0]?.plain_text ?? "",
   };
@@ -21,13 +23,13 @@ function pageToCustomer(page: PageObjectResponse): Customer {
 
 export async function listCustomers(opts?: {
   search?: string;
-  status?: string;
+  dealStage?: string;
 }): Promise<Customer[]> {
   const notion = getNotionClient();
   const filter: any[] = [];
 
-  if (opts?.status) {
-    filter.push({ property: "Status", select: { equals: opts.status } });
+  if (opts?.dealStage) {
+    filter.push({ property: "Deal Stage", select: { equals: opts.dealStage } });
   }
 
   if (opts?.search) {
@@ -61,4 +63,15 @@ export async function getCustomer(id: string): Promise<Customer | null> {
   } catch {
     return null;
   }
+}
+
+export async function updateDealStage(id: string, dealStage: DealStage): Promise<Customer> {
+  const notion = getNotionClient();
+  const page = await notion.pages.update({
+    page_id: id,
+    properties: {
+      "Deal Stage": { select: { name: dealStage } },
+    },
+  });
+  return pageToCustomer(page as PageObjectResponse);
 }

@@ -1,19 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
-import { fetchThreadsForEmail } from "@/lib/gmail/threads";
+import { fetchInboxThreads } from "@/lib/gmail/threads";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const email = req.nextUrl.searchParams.get("customerEmail");
-  if (!email) {
-    return NextResponse.json({ error: "customerEmail is required" }, { status: 400 });
-  }
-
   try {
-    const threads = await fetchThreadsForEmail(email);
+    const threads = await fetchInboxThreads();
     return NextResponse.json({ threads });
   } catch (err) {
     console.error("Gmail integration error:", err);

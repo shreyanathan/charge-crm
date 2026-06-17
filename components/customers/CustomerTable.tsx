@@ -1,12 +1,14 @@
 import Link from "next/link";
-import type { Customer } from "@/types/customer";
+import type { Customer, DealStage } from "@/types/customer";
 import { Badge } from "@/components/ui/Badge";
 
-const statusVariant = {
-  prospect: "warning",
-  active: "success",
-  churned: "default",
-} as const;
+const stageVariant: Record<DealStage, "default" | "warning" | "success" | "danger"> = {
+  NDA: "default",
+  LOI: "warning",
+  Contract: "warning",
+  "Closed/Won": "success",
+  Stale: "danger",
+};
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -29,7 +31,7 @@ export function CustomerTable({ customers }: CustomerTableProps) {
             <th className="px-4 py-3 font-medium text-gray-600">Name</th>
             <th className="px-4 py-3 font-medium text-gray-600">Company</th>
             <th className="px-4 py-3 font-medium text-gray-600">Email</th>
-            <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+            <th className="px-4 py-3 font-medium text-gray-600">Deal Stage</th>
             <th className="px-4 py-3 font-medium text-gray-600">Owner</th>
           </tr>
         </thead>
@@ -47,7 +49,7 @@ export function CustomerTable({ customers }: CustomerTableProps) {
               <td className="px-4 py-3 text-gray-600">{c.company}</td>
               <td className="px-4 py-3 text-gray-600">{c.email}</td>
               <td className="px-4 py-3">
-                <Badge variant={statusVariant[c.status]}>{c.status}</Badge>
+                <Badge variant={stageVariant[c.dealStage]}>{c.dealStage}</Badge>
               </td>
               <td className="px-4 py-3 text-gray-600">{c.owner}</td>
             </tr>

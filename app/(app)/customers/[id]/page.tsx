@@ -7,16 +7,19 @@ import { Badge } from "@/components/ui/Badge";
 import { ConversationFeed } from "@/components/inbox/ConversationFeed";
 import { getCustomer } from "@/lib/notion/customers";
 import { listConversations } from "@/lib/notion/conversations";
+import type { DealStage } from "@/types/customer";
 
 interface CustomerProfilePageProps {
   params: Promise<{ id: string }>;
 }
 
-const statusVariant = {
-  prospect: "warning",
-  active: "success",
-  churned: "default",
-} as const;
+const stageVariant: Record<DealStage, "default" | "warning" | "success" | "danger"> = {
+  NDA: "default",
+  LOI: "warning",
+  Contract: "warning",
+  "Closed/Won": "success",
+  Stale: "danger",
+};
 
 export default async function CustomerProfilePage({ params }: CustomerProfilePageProps) {
   const { id } = await params;
@@ -26,6 +29,15 @@ export default async function CustomerProfilePage({ params }: CustomerProfilePag
   ]);
 
   if (!customer) notFound();
+
+  // Attach customer info to conversations for display
+  const enriched = conversations.map((c) => ({
+    ...c,
+    customerName: customer.name,
+    customerCompany: customer.company,
+    customerDealStage: customer.dealStage,
+    customerOwner: customer.owner,
+  }));
 
   return (
     <div className="flex h-full flex-col">
@@ -40,7 +52,7 @@ export default async function CustomerProfilePage({ params }: CustomerProfilePag
                 <p className="text-gray-500">{customer.company}</p>
               )}
             </div>
-            <Badge variant={statusVariant[customer.status]}>{customer.status}</Badge>
+            <Badge variant={stageVariant[customer.dealStage]}>{customer.dealStage}</Badge>
           </div>
 
           <dl className="grid grid-cols-2 gap-4 text-sm">
@@ -52,12 +64,6 @@ export default async function CustomerProfilePage({ params }: CustomerProfilePag
                     {customer.email}
                   </a>
                 </dd>
-              </>
-            )}
-            {customer.slackUserId && (
-              <>
-                <dt className="font-medium text-gray-500">Slack ID</dt>
-                <dd className="font-mono text-gray-900">{customer.slackUserId}</dd>
               </>
             )}
             {customer.owner && (
@@ -78,10 +84,10 @@ export default async function CustomerProfilePage({ params }: CustomerProfilePag
         {/* Conversations */}
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Conversations ({conversations.length})
+            Conversations ({enriched.length})
           </h3>
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <ConversationFeed conversations={conversations} />
+            <ConversationFeed conversations={enriched} />
           </div>
         </div>
 

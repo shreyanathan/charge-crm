@@ -10,7 +10,7 @@ import { listCustomers } from "@/lib/notion/customers";
 interface CustomersPageProps {
   searchParams: Promise<{
     search?: string;
-    status?: string;
+    dealStage?: string;
   }>;
 }
 
@@ -18,7 +18,7 @@ async function CustomersContent({ searchParams }: CustomersPageProps) {
   const params = await searchParams;
   const customers = await listCustomers({
     search: params.search,
-    status: params.status,
+    dealStage: params.dealStage,
   });
   return <CustomerTable customers={customers} />;
 }

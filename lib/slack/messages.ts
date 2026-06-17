@@ -1,4 +1,11 @@
-import type { SlackMessage } from "@/types/integrations";
+interface SlackMessage {
+  ts: string;
+  channelId: string;
+  text: string;
+  userId: string;
+  username: string;
+  timestamp: string;
+}
 import { getSlackClient } from "./client";
 import { cacheGet, cacheSet } from "@/lib/cache";
 

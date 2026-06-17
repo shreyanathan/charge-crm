@@ -6,20 +6,20 @@ import { Button } from "@/components/ui/Button";
 interface FollowUpToggleProps {
   conversationId: string;
   initialFlag: boolean;
-  initialDueDate: string | null;
+  initialAction: string;
 }
 
 export function FollowUpToggle({
   conversationId,
   initialFlag,
-  initialDueDate,
+  initialAction,
 }: FollowUpToggleProps) {
   const [flag, setFlag] = useState(initialFlag);
-  const [dueDate, setDueDate] = useState(initialDueDate ?? "");
+  const [action, setAction] = useState(initialAction);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function save(newFlag: boolean, newDate: string) {
+  async function save(newFlag: boolean, newAction: string) {
     setSaving(true);
     setError(null);
     try {
@@ -28,12 +28,12 @@ export function FollowUpToggle({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           follow_up_flag: newFlag,
-          follow_up_due_date: newDate || null,
+          follow_up_action: newAction,
         }),
       });
       if (!res.ok) throw new Error("Failed to save");
       setFlag(newFlag);
-      setDueDate(newDate);
+      setAction(newAction);
     } catch {
       setError("Failed to update. Try again.");
     } finally {
@@ -43,35 +43,33 @@ export function FollowUpToggle({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
-          <input
-            type="checkbox"
-            checked={flag}
-            onChange={(e) => save(e.target.checked, dueDate)}
-            disabled={saving}
-            className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
-          />
-          Flag for follow-up
-        </label>
-      </div>
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
+        <input
+          type="checkbox"
+          checked={flag}
+          onChange={(e) => save(e.target.checked, action)}
+          disabled={saving}
+          className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+        />
+        Flag for follow-up
+      </label>
 
       {flag && (
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Due:</label>
           <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text"
+            placeholder="What needs to happen? (e.g. Review NDA draft)"
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+            className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => save(flag, dueDate)}
+            onClick={() => save(flag, action)}
             disabled={saving}
           >
-            {saving ? "Saving…" : "Save date"}
+            {saving ? "Saving…" : "Save"}
           </Button>
         </div>
       )}

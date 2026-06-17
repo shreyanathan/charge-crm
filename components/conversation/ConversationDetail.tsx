@@ -1,32 +1,60 @@
 import type { Conversation } from "@/types/conversation";
-import { Badge } from "@/components/ui/Badge";
 import { FollowUpToggle } from "./FollowUpToggle";
-import { channelLabel, channelColor } from "@/lib/utils/channels";
-import { relativeTime, shortDate } from "@/lib/utils/dates";
-import { cn } from "@/lib/utils/cn";
+import { StatusToggle } from "./StatusToggle";
+import { relativeTime } from "@/lib/utils/dates";
+import { urgencyTier, urgencyLabel, urgencyDot } from "@/lib/utils/urgency";
 
 interface ConversationDetailProps {
   conversation: Conversation;
 }
 
 export function ConversationDetail({ conversation: c }: ConversationDetailProps) {
+  const tier = urgencyTier(c);
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", channelColor(c.channel))}>
-              {channelLabel(c.channel)}
+            <StatusToggle
+              conversationId={c.id}
+              initialStatus={c.conversationStatus}
+            />
+            <span className="text-sm">
+              {urgencyDot[tier]}{" "}
+              <span
+                className={`text-xs font-medium ${
+                  tier === "red"
+                    ? "text-red-600"
+                    : tier === "orange"
+                    ? "text-orange-600"
+                    : tier === "yellow"
+                    ? "text-yellow-600"
+                    : "text-gray-400"
+                }`}
+              >
+                {urgencyLabel(c)}
+              </span>
             </span>
-            <Badge variant={c.status === "open" ? "success" : "default"}>
-              {c.status}
-            </Badge>
           </div>
           <h2 className="text-xl font-semibold text-gray-900">{c.title}</h2>
+          {c.customerName && (
+            <p className="mt-1 text-sm text-gray-500">
+              {c.customerName}
+              {c.customerCompany ? ` @ ${c.customerCompany}` : ""}
+              {c.customerDealStage ? ` · ${c.customerDealStage} stage` : ""}
+              {c.customerOwner ? ` · ${c.customerOwner}` : ""}
+            </p>
+          )}
         </div>
         <div className="shrink-0 text-right text-sm text-gray-500">
           <p>Last message {relativeTime(c.lastMessageAt)}</p>
-          {c.syncedAt && <p className="text-xs text-gray-400">Synced {relativeTime(c.syncedAt)}</p>}
+          {c.lastRepliedAt && (
+            <p className="text-xs text-gray-400">We replied {relativeTime(c.lastRepliedAt)}</p>
+          )}
+          {c.syncedAt && (
+            <p className="text-xs text-gray-400">Synced {relativeTime(c.syncedAt)}</p>
+          )}
         </div>
       </div>
 
@@ -39,7 +67,7 @@ export function ConversationDetail({ conversation: c }: ConversationDetailProps)
         <FollowUpToggle
           conversationId={c.id}
           initialFlag={c.followUpFlag}
-          initialDueDate={c.followUpDueDate}
+          initialAction={c.followUpAction}
         />
       </div>
     </div>

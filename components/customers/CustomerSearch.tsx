@@ -31,22 +31,24 @@ export function CustomerSearch() {
         className="w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <select
-        value={searchParams.get("status") ?? ""}
+        value={searchParams.get("dealStage") ?? ""}
         onChange={(e) => {
           const params = new URLSearchParams(searchParams.toString());
           if (e.target.value) {
-            params.set("status", e.target.value);
+            params.set("dealStage", e.target.value);
           } else {
-            params.delete("status");
+            params.delete("dealStage");
           }
           router.push(`${pathname}?${params.toString()}`);
         }}
         className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <option value="">All statuses</option>
-        <option value="prospect">Prospect</option>
-        <option value="active">Active</option>
-        <option value="churned">Churned</option>
+        <option value="">All stages</option>
+        <option value="NDA">NDA</option>
+        <option value="LOI">LOI</option>
+        <option value="Contract">Contract</option>
+        <option value="Closed/Won">Closed/Won</option>
+        <option value="Stale">Stale</option>
       </select>
     </div>
   );

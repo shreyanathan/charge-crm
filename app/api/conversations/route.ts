@@ -8,13 +8,18 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = req.nextUrl;
-  const channel = searchParams.get("channel") ?? undefined;
   const customerId = searchParams.get("customerId") ?? undefined;
-  const needsReply = searchParams.get("needsReply") === "true" ? true : undefined;
+  const followUpOnly = searchParams.get("followUpOnly") === "true" ? true : undefined;
+  const conversationStatus = searchParams.get("conversationStatus") ?? undefined;
   const status = searchParams.get("status") ?? undefined;
 
   try {
-    const conversations = await listConversations({ channel, customerId, needsReply, status });
+    const conversations = await listConversations({
+      customerId,
+      followUpOnly,
+      conversationStatus,
+      status,
+    });
     return NextResponse.json({ conversations });
   } catch (err) {
     console.error("Failed to list conversations:", err);

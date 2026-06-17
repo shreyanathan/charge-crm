@@ -4,7 +4,13 @@ import { authOptions } from "@/lib/auth/options";
 import { getNotionClient } from "@/lib/notion/client";
 import { getCustomer } from "@/lib/notion/customers";
 import { cacheGet, cacheSet } from "@/lib/cache";
-import type { NotionMention } from "@/types/integrations";
+interface NotionMention {
+  pageId: string;
+  title: string;
+  snippet: string;
+  lastEditedAt: string;
+  url: string;
+}
 
 const CACHE_TTL = 2 * 60 * 1000; // 2 min
 

@@ -3,13 +3,6 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-const channels = [
-  { value: "", label: "All channels" },
-  { value: "email", label: "Email" },
-  { value: "slack", label: "Slack" },
-  { value: "notion", label: "Notion" },
-];
-
 export function FilterBar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -28,39 +21,37 @@ export function FilterBar() {
     [router, pathname, searchParams]
   );
 
+  const active = (key: string, value: string) => searchParams.get(key) === value;
+
   return (
-    <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3">
-      <select
-        value={searchParams.get("channel") ?? ""}
-        onChange={(e) => update("channel", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        {channels.map((c) => (
-          <option key={c.value} value={c.value}>
-            {c.label}
-          </option>
-        ))}
-      </select>
-
-      <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
-        <input
-          type="checkbox"
-          checked={searchParams.get("needsReply") === "true"}
-          onChange={(e) => update("needsReply", e.target.checked ? "true" : "")}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-        />
-        Needs follow-up
-      </label>
-
-      <select
-        value={searchParams.get("status") ?? ""}
-        onChange={(e) => update("status", e.target.value)}
-        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="">All statuses</option>
-        <option value="open">Open</option>
-        <option value="closed">Closed</option>
-      </select>
+    <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-4 py-3">
+      {/* Quick filter tabs */}
+      {[
+        { label: "All", key: "conversationStatus", value: "" },
+        { label: "Waiting on us", key: "conversationStatus", value: "waiting_on_us" },
+        { label: "Follow-up flagged", key: "followUpOnly", value: "true" },
+      ].map(({ label, key, value }) => (
+        <button
+          key={label}
+          onClick={() => {
+            // Clear both filters then set the right one
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete("conversationStatus");
+            params.delete("followUpOnly");
+            if (value) params.set(key, value);
+            router.push(`${pathname}?${params.toString()}`);
+          }}
+          className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            (key === "conversationStatus" && searchParams.get("conversationStatus") === value && !searchParams.get("followUpOnly")) ||
+            (key === "followUpOnly" && searchParams.get("followUpOnly") === "true") ||
+            (label === "All" && !searchParams.get("conversationStatus") && !searchParams.get("followUpOnly"))
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

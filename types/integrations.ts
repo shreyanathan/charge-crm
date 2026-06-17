@@ -3,23 +3,8 @@ export interface GmailThread {
   subject: string;
   snippet: string;
   lastMessageAt: string;
+  lastRepliedAt: string | null; // timestamp of our last outbound message
+  lastSenderEmail: string; // email of the sender of the last message
+  participants: string[]; // all email addresses across all messages in thread
   messageCount: number;
-  from: string;
-}
-
-export interface SlackMessage {
-  ts: string;
-  channelId: string;
-  text: string;
-  userId: string;
-  username: string;
-  timestamp: string;
-}
-
-export interface NotionMention {
-  pageId: string;
-  title: string;
-  snippet: string;
-  lastEditedAt: string;
-  url: string;
 }

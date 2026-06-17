@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = req.nextUrl;
   const search = searchParams.get("search") ?? undefined;
-  const status = searchParams.get("status") ?? undefined;
+  const dealStage = searchParams.get("dealStage") ?? undefined;
 
   try {
-    const customers = await listCustomers({ search, status });
+    const customers = await listCustomers({ search, dealStage });
     return NextResponse.json({ customers });
   } catch (err) {
     console.error("Failed to list customers:", err);

@@ -1,41 +1,38 @@
 import Link from "next/link";
 import type { Conversation } from "@/types/conversation";
-import { channelLabel, channelColor } from "@/lib/utils/channels";
-import { shortDate, relativeTime } from "@/lib/utils/dates";
-import { cn } from "@/lib/utils/cn";
+import { relativeTime } from "@/lib/utils/dates";
+import { urgencyTier, urgencyDot } from "@/lib/utils/urgency";
 
 interface FollowUpRowProps {
   conversation: Conversation;
 }
 
 export function FollowUpRow({ conversation: c }: FollowUpRowProps) {
-  const isOverdue =
-    c.followUpDueDate && new Date(c.followUpDueDate) < new Date();
+  const tier = urgencyTier(c);
 
   return (
     <Link
       href={`/conversations/${c.id}`}
       className="flex items-center justify-between border-b border-gray-100 px-4 py-3 last:border-0 hover:bg-gray-50 transition-colors"
     >
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className={cn("inline-flex rounded-full px-2 py-0.5 text-xs font-medium", channelColor(c.channel))}>
-            {channelLabel(c.channel)}
-          </span>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <span className="shrink-0 text-sm">{urgencyDot[tier]}</span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-gray-900">
+            {c.customerName ? `${c.customerName} @ ${c.customerCompany}` : c.title}
+          </p>
+          {c.followUpAction && (
+            <p className="truncate text-xs text-orange-700 font-medium">{c.followUpAction}</p>
+          )}
+          <p className="truncate text-xs text-gray-500">{c.title}</p>
         </div>
-        <p className="truncate text-sm font-medium text-gray-900">{c.title}</p>
-        {c.snippet && <p className="truncate text-xs text-gray-500">{c.snippet}</p>}
       </div>
       <div className="ml-4 shrink-0 text-right">
-        {c.followUpDueDate ? (
-          <p className={cn("text-xs font-medium", isOverdue ? "text-red-600" : "text-gray-600")}>
-            {isOverdue ? "Overdue: " : "Due: "}
-            {shortDate(c.followUpDueDate)}
-          </p>
-        ) : (
-          <p className="text-xs text-gray-400">No due date</p>
+        <p className="text-xs text-gray-500">Last message</p>
+        <p className="text-xs font-medium text-gray-700">{relativeTime(c.lastMessageAt)}</p>
+        {c.customerDealStage && (
+          <p className="text-xs text-gray-400">{c.customerDealStage}</p>
         )}
-        <p className="text-xs text-gray-400">{relativeTime(c.lastMessageAt)}</p>
       </div>
     </Link>
   );
